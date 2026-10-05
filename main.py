@@ -119,33 +119,67 @@ if choice == "Home":
     st.markdown("---")
 
 
-elif (choice=='Img'):
-    file=st.file_uploader("Upload an image", type=["jpg", "jpeg", "png"])
+
+elif choice == 'Img':
+    file = st.file_uploader(
+        "Upload an image",
+        type=["jpg", "jpeg", "png"]
+    )
+
     if file:
-        b=file.getvalue()
-        d=np.frombuffer(b, np.uint8)
-        img=cv2.imdecode(d, cv2.IMREAD_COLOR)
-        face=facemodel.detectMultiScale(img, scaleFactor=1.3, minNeighbors=5)
-        folder="C:\\Users\\DEEP PATEL\\OneDrive\\Desktop\\python\\projects\\facemask\\data\\"
-        i=len(os.listdir(folder))+1
+        b = file.getvalue()
+        d = np.frombuffer(b, np.uint8)
+        img = cv2.imdecode(d, cv2.IMREAD_COLOR)
 
-        for x,y,w,h in face:
-            crop_face1=img[y:y+h,x:x+w]
-            crop_face = cv2.resize(crop_face1, (150,150))
-            crop_face = img_to_array(crop_face)
-            crop_face=np.expand_dims(crop_face,axis=0)
-            crop_face = crop_face / 255.0  
-            result=maskmodel.predict(crop_face)[0][0]
-            path = os.path.join(folder, str(i) + ".jpg")
-            print(result)
-            if result > 0.5:
-                cv2.rectangle(img,(x,y),(x+w,y+h),(0,0,255),4)
-            else:
-                cv2.rectangle(img,(x,y),(x+w,y+h),(0,255,0),4)
-                cv2.imwrite(path,crop_face1)
-                i+=1
-        st.image(img, caption="Uploaded Image", channels='BGR', width=600)
+        if img is None:
+            st.error("Could not read this image. Please upload another.")
+        else:
+            face = facemodel.detectMultiScale(
+                img,
+                scaleFactor=1.3,
+                minNeighbors=5
+            )
 
+            if len(face) == 0:
+                st.warning("No faces detected in this image.")
+
+            for x, y, w, h in face:
+                crop_face1 = img[y:y+h, x:x+w]
+
+                crop_face = cv2.resize(crop_face1, (150, 150))
+                crop_face = img_to_array(crop_face)
+                crop_face = np.expand_dims(crop_face, axis=0)
+                crop_face = crop_face / 255.0
+
+                result = maskmodel.predict(crop_face, verbose=0)[0][0]
+
+                if result > 0.5:
+                    # No mask
+                    cv2.rectangle(
+                        img, (x, y), (x+w, y+h),
+                        (0, 0, 255), 4
+                    )
+                    label = "No Mask"
+                else:
+                    # Mask
+                    cv2.rectangle(
+                        img, (x, y), (x+w, y+h),
+                        (0, 255, 0), 4
+                    )
+                    label = "Mask"
+
+                cv2.putText(
+                    img, label, (x, max(y-10, 20)),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.7,
+                    (255, 255, 255), 2
+                )
+
+            st.image(
+                img,
+                caption="Face Mask Detection Result",
+                channels="BGR",
+                width=600
+            )
 
 elif (choice=='Video'):
     file=st.file_uploader("Upload a video", type=["mp4", "avi", "mov"])
