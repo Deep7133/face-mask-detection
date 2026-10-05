@@ -28,6 +28,16 @@ def load_face_model():
 
     return face_model
 
+@st.cache_resource
+def load_mask_model():
+    model_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "mask_mobilenet.h5"
+    )
+    return load_model(model_path)
+
+maskmodel = load_mask_model()
+
 # ------------------ SESSION STATE ------------------
 if "menu" not in st.session_state:
     st.session_state.menu = "Home"
