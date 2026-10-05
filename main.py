@@ -84,7 +84,7 @@ if choice == "Home":
 
     # RIGHT
     with col2:
-        st.image("home.jpg", use_container_width=True)
+       # st.image("home.jpg", use_container_width=True)
 
         st.markdown("""
         <div style='text-align:center; margin-top:10px;'>
