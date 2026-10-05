@@ -12,9 +12,23 @@ st.set_page_config(page_title="Face Mask Detection", layout="wide")
 
 # ------------------ MODELS ------------------
 @st.cache_resource
-def load_face_model():
-    return cv2.CascadeClassifier("face.xml")
+import os
+import cv2
 
+def load_face_model():
+    model_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "face.xml"
+    )
+
+    face_model = cv2.CascadeClassifier(model_path)
+
+    if face_model.empty():
+        raise FileNotFoundError(
+            f"Could not load face detection model: {model_path}"
+        )
+
+    return face_model
 facemodel = load_face_model()
 @st.cache_resource
 def load_my_model():
