@@ -13,6 +13,8 @@ st.set_page_config(page_title="Face Mask Detection", layout="wide")
 # ------------------ MODELS ------------------
 @st.cache_resource
 
+
+@st.cache_resource
 def load_face_model():
     model_path = os.path.join(
         os.path.dirname(os.path.abspath(__file__)),
@@ -28,6 +30,7 @@ def load_face_model():
 
     return face_model
 
+
 @st.cache_resource
 def load_mask_model():
     model_path = os.path.join(
@@ -36,6 +39,9 @@ def load_mask_model():
     )
     return load_model(model_path)
 
+
+# Load both models
+facemodel = load_face_model()
 maskmodel = load_mask_model()
 
 # ------------------ SESSION STATE ------------------
