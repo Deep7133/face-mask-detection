@@ -215,42 +215,59 @@ elif (choice=='Video'):
                     cv2.rectangle(frame,(x,y),(x+w,y+h),(0,255,0),4)
                 window.image(frame, channels='BGR')
 
-elif (choice=='Camera'):
-   if "start_cam" not in st.session_state:
-    st.session_state.start_cam = False  
-   
-   if st.button("Start/stop Camera"):
-    st.session_state.start_cam = not st.session_state.start_cam
-   window = st.empty()
-   if st.session_state.start_cam:
-    vid=cv2.VideoCapture(0)
-    i=1
-    while True:
-        if not st.session_state.start_cam:
-            break
-        flag, frame =vid.read()
-        if not flag:
-            break
 
-        face=facemodel.detectMultiScale(frame, scaleFactor=1.3, minNeighbors=5)
-        for x,y,w,h in face:
-            crop_face1=frame[y:y+h,x:x+w]
-            crop_face = cv2.resize(crop_face1, (150,150))
-            crop_face = img_to_array(crop_face)
-            crop_face=np.expand_dims(crop_face,axis=0)
-            crop_face = crop_face / 255.0
-            result=maskmodel.predict(crop_face)[0][0]
-            if result > 0.5:
-                cv2.rectangle(frame,(x,y),(x+w,y+h),(0,0,255),4)
-            else:
-                path = os.path.join("C:\\Users\\DEEP PATEL\\OneDrive\\Desktop\\python\\projects\\facemask\\data\\", str(i) + ".jpg")
-                cv2.imwrite(path,crop_face1)
-                i+=1
-                cv2.rectangle(frame,(x,y),(x+w,y+h),(0,255,0),4)
-        window.image(frame, channels='BGR')
-    vid.release()
-    cv2.destroyAllWindows()
-    
+elif choice == 'Camera':
+    st.subheader("Face Mask Detection - Camera")
+
+    file = st.camera_input("Take a picture")
+
+    if file is not None:
+        b = file.getvalue()
+        d = np.frombuffer(b, np.uint8)
+        frame = cv2.imdecode(d, cv2.IMREAD_COLOR)
+
+        if frame is None:
+            st.error("Could not read the captured image.")
+        else:
+            face = facemodel.detectMultiScale(
+                frame,
+                scaleFactor=1.3,
+                minNeighbors=5
+            )
+
+            if len(face) == 0:
+                st.warning("No faces detected.")
+
+            for x, y, w, h in face:
+                crop_face1 = frame[y:y+h, x:x+w]
+                crop_face = cv2.resize(crop_face1, (150, 150))
+                crop_face = img_to_array(crop_face)
+                crop_face = np.expand_dims(crop_face, axis=0)
+                crop_face = crop_face / 255.0
+
+                result = maskmodel.predict(crop_face, verbose=0)[0][0]
+
+                if result > 0.5:
+                    label = "No Mask"
+                    color = (0, 0, 255)
+                else:
+                    label = "Mask"
+                    color = (0, 255, 0)
+
+                cv2.rectangle(
+                    frame, (x, y), (x+w, y+h), color, 4
+                )
+                cv2.putText(
+                    frame, label, (x, max(y-10, 20)),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2
+                )
+
+            st.image(
+                frame,
+                channels="BGR",
+                caption="Camera Detection Result"
+            )
+            
 elif (choice=='URL'):
     url = st.text_input("Enter Live Camera URL")
 
