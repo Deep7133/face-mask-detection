@@ -12,8 +12,6 @@ st.set_page_config(page_title="Face Mask Detection", layout="wide")
 
 # ------------------ MODELS ------------------
 @st.cache_resource
-import os
-import cv2
 
 def load_face_model():
     model_path = os.path.join(
